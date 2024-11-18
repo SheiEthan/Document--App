@@ -47,3 +47,60 @@ Propriété statique : On utilise les propriétés statiques quand l'on souhaite
 Exercice 2 
 
 dequeueReusableCell : Important pour les performances de l'application car cela permet de réutiliser les cellules au lieu d'en recréer à chaque fois que la table est affiché sur l'application. Cela permet donc de ne pas mettre un gros temps de calcul à chaque fois.
+
+4-NAVIGATION
+
+Exercice 1
+
+Que venons de faire en réalité ?
+
+Nous venons de créer un système de navigation avec le titre de la page actuelle. 
+
+NavigationController :
+
+Gère une pile qui possède un ou plusieurs ViewControllers tout en affichant un seul ViewControllers. Gère la logique.
+
+NavigationBar même chose que NavigationController ?
+
+Ils ne sont pas pareil mais peuvent s'utiliser ensemble. NavigationBar est une barre qui permet d'afficher le titre de la page actuelle, les actions de navigations entre les vues, d'autres actions. Alors que NavigationController gère toutes les vues pour naviguer entre elles.
+
+5-BUNDLE
+
+Exercice 1 
+
+<!-- fonction qui retourne un DocumentFile-->
+func listFileInBundle() -> [DocumentFile] {
+<!-- initialise l'emplacement a recherche par défaut-->
+        let fm = FileManager.default
+<!-- récupère le chemin du bundle de l'application-->
+        let path = Bundle.main.resourcePath!
+<!-- récupère tous les fichiers du repertoire-->
+        let items = try! fm.contentsOfDirectory(atPath: path)
+<!-- crée une liste de tous les documents -->
+        var documentListBundle = [DocumentFile]()
+<!-- pour tous les item dans la liste d'items-->
+        for item in items {
+<!-- si le fichier ne termine pas par "DS_Store" et termine par ".jpg"-->
+            if !item.hasSuffix("DS_Store") && item.hasSuffix(".jpg") {
+<!-- donne un url actuel qui est le chemin avec le nom de l'item a la fin-->
+                let currentUrl = URL(fileURLWithPath: path + "/" + item)
+<!-- donne a l'url actuelle des valeurs comme un type de contenu, un nom et une taille de fichier-->
+                let resourcesValues = try! currentUrl.resourceValues(forKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
+<!-- ajoute a la liste documentListBundle un DocumentFile-->
+                documentListBundle.append(DocumentFile(
+<!-- donne au DocumentFile le nom de l'url actuelle grace a resourcesValues-->
+                    title: resourcesValues.name!,
+<!-- donne une taille de fichier et si il n'y en a pas donne 0-->
+                    size: resourcesValues.fileSize ?? 0, 
+<!-- le nom de l'image est le nom de l'item-->
+                    imageName: item,
+<!-- l'url est l'url actuelle-->
+                    url: currentUrl,
+<!-- donne un type-->
+                    type: resourcesValues.contentType!.description)
+                )
+            }
+        }
+<!-- le retour de la fonction est la liste documentListBundle--> 
+        return documentListBundle
+    }
