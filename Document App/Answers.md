@@ -46,4 +46,4 @@ Propriété statique : On utilise les propriétés statiques quand l'on souhaite
 
 Exercice 2 
 
-dequeueReusableCell : Important pour les performances de l'application car 
+dequeueReusableCell : Important pour les performances de l'application car cela permet de réutiliser les cellules au lieu d'en recréer à chaque fois que la table est affiché sur l'application. Cela permet donc de ne pas mettre un gros temps de calcul à chaque fois.
