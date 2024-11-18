@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Foundation
 
 func listFileInBundle() -> [DocumentFile] {
         
@@ -40,10 +41,9 @@ struct DocumentFile {
     var type: String
     
     // Liste statique de documents pour les tests
-        static let testDocuments: [DocumentFile] = listFileInBundle()
+    static let testDocuments: [DocumentFile] = listFileInBundle()
 }
 
-import Foundation
 
 extension Int {
     func formattedSize() -> String {

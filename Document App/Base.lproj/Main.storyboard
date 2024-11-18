@@ -3,6 +3,7 @@
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22131"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -39,6 +40,9 @@
                                         </label>
                                     </subviews>
                                 </tableViewCellContentView>
+                                <connections>
+                                    <segue destination="uEO-2a-8N4" kind="show" identifier="ShowDocumentSegue" id="bfS-DF-dPC"/>
+                                </connections>
                             </tableViewCell>
                         </prototypes>
                         <connections>
@@ -50,7 +54,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="02I-9f-tad" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="292.36641221374043" y="258.45070422535213"/>
+            <point key="canvasLocation" x="-634" y="232"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="4BL-v0-nBf">
@@ -68,7 +72,34 @@
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="04T-MP-X9Y" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-634.35114503816794" y="258.45070422535213"/>
+            <point key="canvasLocation" x="-1561" y="232"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="9AN-hy-SbK">
+            <objects>
+                <viewController id="uEO-2a-8N4" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="cAr-bg-WDO">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Rh4-SF-P6q">
+                                <rect key="frame" x="0.0" y="103" width="393" height="715"/>
+                            </imageView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="uBp-76-eSC"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="Rh4-SF-P6q" firstAttribute="bottom" secondItem="uBp-76-eSC" secondAttribute="bottom" id="3XQ-pA-d14"/>
+                            <constraint firstItem="Rh4-SF-P6q" firstAttribute="leading" secondItem="cAr-bg-WDO" secondAttribute="leading" id="DG1-bC-Dvd"/>
+                            <constraint firstItem="Rh4-SF-P6q" firstAttribute="top" secondItem="uBp-76-eSC" secondAttribute="top" id="F83-x6-Zxn"/>
+                            <constraint firstAttribute="trailing" secondItem="Rh4-SF-P6q" secondAttribute="trailing" id="z7n-CW-lCh"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" id="D7e-TR-EMO"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="MBJ-Rb-uwC" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="220.61068702290075" y="231.69014084507043"/>
         </scene>
     </scenes>
     <resources>
