@@ -5,22 +5,22 @@
 //  Created by Ethan TILLIER on 11/18/24.
 //
 
-import UIKit
-
-class DocumentViewController: UIViewController {
-    @IBOutlet weak var imageView: UIImageView!
-    
-    var imageName: String?
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        if let imageName = imageName {
-                    // Afficher l'image dans l'ImageView
-                    imageView.image = UIImage(named: imageName)
-                }
-        // Do any additional setup after loading the view.
-    }
+//import UIKit
+//
+//class DocumentViewController: UIViewController {
+//    @IBOutlet weak var imageView: UIImageView!
+//    
+//    var imageName: String?
+//    
+//    override func viewDidLoad() {
+//        super.viewDidLoad()
+//
+//        if let imageName = imageName {
+//                    // Afficher l'image dans l'ImageView
+//                    imageView.image = UIImage(named: imageName)
+//                }
+//        // Do any additional setup after loading the view.
+//    }
     
 
     /*
@@ -33,4 +33,4 @@ class DocumentViewController: UIViewController {
     }
     */
 
-}
+//}
