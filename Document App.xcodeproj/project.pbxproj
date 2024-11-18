@@ -24,6 +24,7 @@
 		57D75C922CEB3CD60034EA1F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		57D75C952CEB3CD60034EA1F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		57D75C972CEB3CD60034EA1F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		57D75C9E2CEB3DC00034EA1F /* Answers.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Answers.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +64,7 @@
 				57D75C922CEB3CD60034EA1F /* Assets.xcassets */,
 				57D75C942CEB3CD60034EA1F /* LaunchScreen.storyboard */,
 				57D75C972CEB3CD60034EA1F /* Info.plist */,
+				57D75C9E2CEB3DC00034EA1F /* Answers.md */,
 			);
 			path = "Document App";
 			sourceTree = "<group>";
