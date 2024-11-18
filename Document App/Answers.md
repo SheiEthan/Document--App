@@ -1,6 +1,6 @@
-1-ENVIRONNEMENT
+#1-ENVIRONNEMENT
 
-Exercice 1
+##Exercice 1
 
 Les targets :
 
@@ -24,7 +24,7 @@ Un simulateur :
 
 Permet de tester l'application dans un environnement virtuel directement dans xcode (permet de tester l'application avant le déployement).
 
-Exercice 2 
+##Exercice 2 
 
 Cmd + R : Sert a build le projet pour le compiler et exécuter le code.
 
@@ -34,23 +34,23 @@ Indenter le code automatiquement : Cmd + i
 
 Commenter la selection : Cmd + /
 
-Exercice 3
+##Exercice 3
 
 Testé avec plusieurs iphone et des ipad.
 
-3-DELEGATION
+#3-DELEGATION
 
-Exercice 1 
+##Exercice 1 
 
 Propriété statique : On utilise les propriétés statiques quand l'on souhaite stocker des données dans une classe. Quand on a pas beson de répliquer ces données dans les instances.
 
-Exercice 2 
+##Exercice 2 
 
 dequeueReusableCell : Important pour les performances de l'application car cela permet de réutiliser les cellules au lieu d'en recréer à chaque fois que la table est affiché sur l'application. Cela permet donc de ne pas mettre un gros temps de calcul à chaque fois.
 
-4-NAVIGATION
+#4-NAVIGATION
 
-Exercice 1
+##Exercice 1
 
 Que venons de faire en réalité ?
 
@@ -64,9 +64,9 @@ NavigationBar même chose que NavigationController ?
 
 Ils ne sont pas pareil mais peuvent s'utiliser ensemble. NavigationBar est une barre qui permet d'afficher le titre de la page actuelle, les actions de navigations entre les vues, d'autres actions. Alors que NavigationController gère toutes les vues pour naviguer entre elles.
 
-5-BUNDLE
+#5-BUNDLE
 
-Exercice 1 
+##Exercice 1 
 
 <!-- fonction qui retourne un DocumentFile-->
 func listFileInBundle() -> [DocumentFile] {
@@ -105,14 +105,30 @@ func listFileInBundle() -> [DocumentFile] {
         return documentListBundle
     }
 
-6-ECRAN DETAIL
+#6-ECRAN DETAIL
 
-Exercice 1
+##Exercice 1
 
 Segue : c'est un objet dans le storyboard qui permet de créer une transition entre deux pages.
 
-Exercice 2
+##Exercice 2
 
 Constraint : permet de créer une mise en page fléxible et adaptative. Permettent à l'interface de s'ajuster à différents types de périphériques et tailles d'écran.
 
 Lien avec AutoLayout : Les constraints permettent de définir des règles de positionnement ou de dimensionnement pour les vues pour le système autoLayout. L'autoLayout c'est le système qui gère la disposition dynamique des éléments à l'écran.
+
+#9-QLPREVIEW
+
+Pourquoi serait-il plus pertinent de changer l'accessory de nos cellules pour un disclosureIndicator ?
+
+Le disclosureIndicator est un indicateur visuel qui permet à l'utilisateur de savoir que un élément est intéractif. Il est donc pertinent de l'utiliser pour indiquer qu'il y a une action de navigatoin ou alors pour une meilleure UX.
+
+#10-IMPORTATION
+
+Selector :
+
+.add :
+
+@objc devant la fonction ciblée par le selector :
+
+Ajouter plusieurs boutons dans la barre de navigation :
