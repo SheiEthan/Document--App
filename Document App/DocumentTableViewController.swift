@@ -72,15 +72,9 @@ class DocumentTableViewController: UITableViewController {
                 
                 // Optionnel : Ajouter plus d'informations dans la cellule (ex : taille)
                 cell.detailTextLabel?.text = "Size: \(document.size) KB"
-                
-                // Si tu veux gérer l'affichage d'images, tu peux utiliser `imageName` si disponible
-                if let imageName = document.imageName {
-                    // Utilise l'image associée si l'imageName est défini
-                    cell.imageView?.image = UIImage(named: imageName)
-                } else {
-                    // Si aucune image n'est fournie, tu peux définir une image par défaut
-                    cell.imageView?.image = UIImage(systemName: "doc.text")
-                }
+        
+                let arrowIcon = UIImage(systemName: "chevron.right")
+                cell.accessoryView = UIImageView(image: arrowIcon)
                 
                 return cell
     }
