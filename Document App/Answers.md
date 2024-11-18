@@ -104,3 +104,15 @@ func listFileInBundle() -> [DocumentFile] {
 <!-- le retour de la fonction est la liste documentListBundle--> 
         return documentListBundle
     }
+
+6-ECRAN DETAIL
+
+Exercice 1
+
+Segue : c'est un objet dans le storyboard qui permet de créer une transition entre deux pages.
+
+Exercice 2
+
+Constraint : permet de créer une mise en page fléxible et adaptative. Permettent à l'interface de s'ajuster à différents types de périphériques et tailles d'écran.
+
+Lien avec AutoLayout : Les constraints permettent de définir des règles de positionnement ou de dimensionnement pour les vues pour le système autoLayout. L'autoLayout c'est le système qui gère la disposition dynamique des éléments à l'écran.
