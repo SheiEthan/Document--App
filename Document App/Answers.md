@@ -34,4 +34,6 @@ Commenter la selection : Cmd + /
 
 Exercice 3
 
+Testé avec plusieurs iphone et des ipad.
+
 
