@@ -7,6 +7,7 @@
 
 import UIKit
 import Foundation
+import QuickLook
 
 func listFileInBundle() -> [DocumentFile] {
         
@@ -41,7 +42,7 @@ struct DocumentFile {
     var type: String
     
     // Liste statique de documents pour les tests
-    static let testDocuments: [DocumentFile] = listFileInBundle()
+    static let documents: [DocumentFile] = listFileInBundle()
 }
 
 
@@ -54,9 +55,9 @@ extension Int {
 }
 
 
-class DocumentTableViewController: UITableViewController {
+class DocumentTableViewController: UITableViewController, QLPreviewControllerDataSource {
     
-    var documents = DocumentFile.testDocuments
+    var previewItem: QLPreviewItem?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -68,13 +69,13 @@ class DocumentTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return documents.count
+        return DocumentFile.documents.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "DocumentCell", for: indexPath)
                 
-                let document = documents[indexPath.row]
+        let document = DocumentFile.documents[indexPath.row]
                 
                 cell.textLabel?.text = document.title
                 
@@ -94,16 +95,28 @@ class DocumentTableViewController: UITableViewController {
     
     // Dans DocumentTableViewController
 
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let document = DocumentFile.documents[indexPath.row]
+           instantiateQLPreviewController(withUrl: document.url)
+       }
 
-        if let indexPath = tableView.indexPathForSelectedRow {            
-            let selectedDocument = DocumentFile.testDocuments[indexPath.row]
-            if let documentVC = segue.destination as? DocumentViewController {
-                documentVC.imageName = selectedDocument.imageName
-            }
+       // 2. Cette méthode permet de présenter le QLPreviewController
+    func instantiateQLPreviewController(withUrl url: URL) {
+       let previewController = QLPreviewController()
+       previewController.dataSource = self  // Assigner le datasource à self
+        previewItem = url as QLPreviewItem
+       navigationController?.pushViewController(previewController, animated: true)
+   }
+    
+    func numberOfPreviewItems(in controller: QLPreviewController) -> Int {
+            return 1 // Nous ne présentons qu'un seul fichier à la fois
         }
-    }
 
+        // Cette méthode retourne l'élément à asfficher
+        func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
+            // Retourner l'item QuickLook, qui est simplement l'URL du fichier
+            return previewItem!
+        }
 
     /*
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
