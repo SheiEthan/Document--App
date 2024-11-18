@@ -53,6 +53,7 @@ extension Int {
     }
 }
 
+
 class DocumentTableViewController: UITableViewController {
     
     var documents = DocumentFile.testDocuments
@@ -90,6 +91,19 @@ class DocumentTableViewController: UITableViewController {
                 
                 return cell
     }
+    
+    // Dans DocumentTableViewController
+
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+
+        if let indexPath = tableView.indexPathForSelectedRow {            
+            let selectedDocument = DocumentFile.testDocuments[indexPath.row]
+            if let documentVC = segue.destination as? DocumentViewController {
+                documentVC.imageName = selectedDocument.imageName
+            }
+        }
+    }
+
 
     /*
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -146,3 +160,4 @@ class DocumentTableViewController: UITableViewController {
     }
     */
 }
+
