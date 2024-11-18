@@ -1,3 +1,5 @@
+1-ENVIRONNEMENT
+
 Exercice 1
 
 Les targets :
@@ -36,4 +38,12 @@ Exercice 3
 
 Testé avec plusieurs iphone et des ipad.
 
+3-DELEGATION
 
+Exercice 1 
+
+Propriété statique : On utilise les propriétés statiques quand l'on souhaite stocker des données dans une classe. Quand on a pas beson de répliquer ces données dans les instances.
+
+Exercice 2 
+
+dequeueReusableCell : Important pour les performances de l'application car 
