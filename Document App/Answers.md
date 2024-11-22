@@ -125,10 +125,14 @@ Le disclosureIndicator est un indicateur visuel qui permet à l'utilisateur de s
 
 #10-IMPORTATION
 
-Selector :
+Selector : Représente les noms de méthodes d'un objet ou d'une classe et qui sont utilisé pendant l'exécution du code.
 
-.add :
+.add : Permet d'ajouter des éléments ou de modifier des collections.
 
-@objc devant la fonction ciblée par le selector :
+@objc devant la fonction ciblée par le selector : Utilisé pour communiquer avec les éléments qui utilisent Objective-C.
 
-Ajouter plusieurs boutons dans la barre de navigation :
+Ajouter plusieurs boutons dans la barre de navigation : Oui c'est possible. 
+    let button1 = UIBarButtonItem(title: "Button 1", style: .plain, target: self, action: #selector(button1Tapped))
+    let button2 = UIBarButtonItem(title: "Button 2", style: .plain, target: self, action: #selector(button2Tapped))
+    let button3 = UIBarButtonItem(title: "Button 3", style: .plain, target: self, action: #selector(button3Tapped))
+    navigationItem.rightBarButtonItems = [button1, button2, button3]
