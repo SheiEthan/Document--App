@@ -59,7 +59,7 @@ extension Int {
 class DocumentTableViewController: UITableViewController, QLPreviewControllerDataSource, UIDocumentPickerDelegate {
     
     var previewItem: QLPreviewItem?
-    var allDocuments: [DocumentFile] = []
+    var allDocuments: [[DocumentFile]] = [[], []]
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -96,7 +96,7 @@ class DocumentTableViewController: UITableViewController, QLPreviewControllerDat
                            url: destinationUrl,
                            type: contentType.description
                        )
-                       allDocuments.append(documentFile)
+                       allDocuments[1].append(documentFile)
                    } else {
                        print("Erreur: Les propriétés du fichier ne sont pas accessibles.")
                    }
@@ -141,8 +141,9 @@ class DocumentTableViewController: UITableViewController, QLPreviewControllerDat
         // Charger les fichiers du répertoire Documents
         let documentDirectoryFiles = listFileInDocumentsDirectory()
 
-        // Fusionner les fichiers dans la DataSource
-        allDocuments = bundleDocuments + documentDirectoryFiles
+        // Remplir les sous-listes dans allDocuments : [Bundle, Importés]
+        allDocuments[0] = bundleDocuments
+        allDocuments[1] = documentDirectoryFiles
 
         // Recharger la TableView
         tableView.reloadData()
@@ -160,17 +161,17 @@ class DocumentTableViewController: UITableViewController, QLPreviewControllerDat
     // MARK: - Table view data source
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
+        return 2
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return allDocuments.count
+        return allDocuments[section].count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "DocumentCell", for: indexPath)
                 
-        let document = allDocuments[indexPath.row]
+                let document = allDocuments[indexPath.section][indexPath.row]
                 
                 cell.textLabel?.text = document.title
                 
@@ -191,9 +192,21 @@ class DocumentTableViewController: UITableViewController, QLPreviewControllerDat
     // Dans DocumentTableViewController
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let document = allDocuments[indexPath.row]
+        let document = allDocuments[indexPath.section][indexPath.row]
            instantiateQLPreviewController(withUrl: document.url)
        }
+    
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        switch section {
+        case 0:
+            return "Bundle"  // Titre de la section des fichiers du bundle
+        case 1:
+            return "Importés"  // Titre de la section des fichiers importés
+        default:
+            return nil
+        }
+    }
+
 
        // 2. Cette méthode permet de présenter le QLPreviewController
     func instantiateQLPreviewController(withUrl url: URL) {
