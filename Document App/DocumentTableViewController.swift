@@ -11,29 +11,26 @@ import QuickLook
 import UniformTypeIdentifiers
 
 func listFileInBundle() -> [DocumentFile] {
-        
-        let fm = FileManager.default
-        let path = Bundle.main.resourcePath!
-        let items = try! fm.contentsOfDirectory(atPath: path)
-        
-        var documentListBundle = [DocumentFile]()
-    
-        for item in items {
-            if !item.hasSuffix("DS_Store") && item.hasSuffix(".jpg") {
-                let currentUrl = URL(fileURLWithPath: path + "/" + item)
-                let resourcesValues = try! currentUrl.resourceValues(forKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
-                   
-                documentListBundle.append(DocumentFile(
-                    title: resourcesValues.name!,
-                    size: resourcesValues.fileSize ?? 0,
-                    imageName: item,
-                    url: currentUrl,
-                    type: resourcesValues.contentType!.description)
-                )
-            }
+    let fm = FileManager.default
+    let path = Bundle.main.resourcePath!
+    let items = try! fm.contentsOfDirectory(atPath: path)
+    var documentListBundle = [DocumentFile]()
+    for item in items {
+        if !item.hasSuffix("DS_Store") && item.hasSuffix(".jpg") {
+            let currentUrl = URL(fileURLWithPath: path + "/" + item)
+            let resourcesValues = try! currentUrl.resourceValues(forKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
+               
+            documentListBundle.append(DocumentFile(
+                title: resourcesValues.name!,
+                size: resourcesValues.fileSize ?? 0,
+                imageName: item,
+                url: currentUrl,
+                type: resourcesValues.contentType!.description)
+            )
         }
-        return documentListBundle
     }
+    return documentListBundle
+}
 
 struct DocumentFile {
     var title: String
@@ -56,17 +53,68 @@ extension Int {
 }
 
 
-class DocumentTableViewController: UITableViewController, QLPreviewControllerDataSource, UIDocumentPickerDelegate {
+class DocumentTableViewController: UITableViewController, UISearchBarDelegate, QLPreviewControllerDataSource, UIDocumentPickerDelegate {
     
     var previewItem: QLPreviewItem?
     var allDocuments: [[DocumentFile]] = [[], []]
+    var filteredDocuments: [[DocumentFile]] = [[], []] // Contient les documents filtrés
+    var isSearchActive = false // Indicateur pour vérifier si la recherche est active
+    var searchBar: UISearchBar!
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Ajouter la Search Bar
+        searchBar = UISearchBar()
+        searchBar.delegate = self
+        navigationItem.titleView = searchBar
+        
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addDocument))
+        
         loadAllDocuments()
     }
     
+    // Fonction pour filtrer les documents en fonction du texte recherché
+    func filterDocuments(by searchText: String) {
+        if searchText.isEmpty {
+            filteredDocuments = allDocuments // Réinitialise à tous les documents si la recherche est vide
+        } else {
+            filteredDocuments = allDocuments.map { section in
+                section.filter { document in
+                    document.title.lowercased().contains(searchText.lowercased())
+                }
+            }
+        }
+        tableView.reloadData()
+    }
+
+    // Méthode du delegate de la SearchBar pour déclencher le filtrage
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        filterDocuments(by: searchText)
+    }
+
+    // Méthode pour quand la recherche est annulée
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.text = ""
+        filterDocuments(by: "")
+        searchBar.resignFirstResponder()
+    }
+    
+    func loadAllDocuments() {
+        // Charger les fichiers du bundle
+        let bundleDocuments = listFileInBundle()
+        
+        // Charger les fichiers du répertoire Documents
+        let documentDirectoryFiles = listFileInDocumentsDirectory()
+        
+        // Remplir les sous-listes dans allDocuments : [Bundle, Importés]
+        allDocuments[0] = bundleDocuments
+        allDocuments[1] = documentDirectoryFiles
+        
+        filteredDocuments = allDocuments // Initialiser les documents filtrés à la totalité
+        tableView.reloadData()
+    }
+
     @objc func addDocument() {
         // Lancer le UIDocumentPicker
         let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.item]) // Permet de sélectionner tous types de fichiers
@@ -76,34 +124,33 @@ class DocumentTableViewController: UITableViewController, QLPreviewControllerDat
     }
     
     func copyFileToDocumentsDirectory(fromUrl url: URL) {
-           let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-           let destinationUrl = documentsDirectory.appendingPathComponent(url.lastPathComponent)
-           
-           do {
-               try FileManager.default.copyItem(at: url, to: destinationUrl)
-                       
-               let resourceValues = try? url.resourceValues(forKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
-                       
-                       
-                   if let resources = resourceValues,
-                      let name = resources.name, // Nom du fichier
-                      let contentType = resources.contentType {
-                       
-                       let documentFile = DocumentFile(
-                           title: name,
-                           size: Int(resources.fileSize ?? 0),
-                           imageName: nil,
-                           url: destinationUrl,
-                           type: contentType.description
-                       )
-                       allDocuments[1].append(documentFile)
-                   } else {
-                       print("Erreur: Les propriétés du fichier ne sont pas accessibles.")
-                   }
-           } catch {
-               print(error)
-           }
-       }
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let destinationUrl = documentsDirectory.appendingPathComponent(url.lastPathComponent)
+        
+        do {
+            try FileManager.default.copyItem(at: url, to: destinationUrl)
+            
+            let resourceValues = try? url.resourceValues(forKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
+            
+            if let resources = resourceValues,
+               let name = resources.name, // Nom du fichier
+               let contentType = resources.contentType {
+                
+                let documentFile = DocumentFile(
+                    title: name,
+                    size: Int(resources.fileSize ?? 0),
+                    imageName: nil,
+                    url: destinationUrl,
+                    type: contentType.description
+                )
+                allDocuments[1].append(documentFile)
+            } else {
+                print("Erreur: Les propriétés du fichier ne sont pas accessibles.")
+            }
+        } catch {
+            print(error)
+        }
+    }
     
     func listFileInDocumentsDirectory() -> [DocumentFile] {
         // Obtenir le chemin du répertoire Documents
@@ -133,68 +180,41 @@ class DocumentTableViewController: UITableViewController, QLPreviewControllerDat
 
         return documentList
     }
-    
-    func loadAllDocuments() {
-        // Charger les fichiers du bundle
-        let bundleDocuments = listFileInBundle()
 
-        // Charger les fichiers du répertoire Documents
-        let documentDirectoryFiles = listFileInDocumentsDirectory()
-
-        // Remplir les sous-listes dans allDocuments : [Bundle, Importés]
-        allDocuments[0] = bundleDocuments
-        allDocuments[1] = documentDirectoryFiles
-
-        // Recharger la TableView
-        tableView.reloadData()
-    }
-    
-    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        guard let selectedFileUrl = urls.first else { return }
-        copyFileToDocumentsDirectory(fromUrl: selectedFileUrl)
-
-        // Mettre à jour la DataSource et recharger la TableView
-        loadAllDocuments()
-    }
-    
-    
     // MARK: - Table view data source
-    
+
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 2
     }
-    
+
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return allDocuments[section].count
+        return filteredDocuments[section].count
     }
-    
+
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-                let cell = tableView.dequeueReusableCell(withIdentifier: "DocumentCell", for: indexPath)
-                
-                let document = allDocuments[indexPath.section][indexPath.row]
-                
-                cell.textLabel?.text = document.title
-                
-                cell.detailTextLabel?.text = "Size: \(document.size.formattedSize())"
+        let cell = tableView.dequeueReusableCell(withIdentifier: "DocumentCell", for: indexPath)
         
-                let arrowIcon = UIImage(systemName: "chevron.right")
-                cell.accessoryView = UIImageView(image: arrowIcon)
+        let document = filteredDocuments[indexPath.section][indexPath.row]
         
-                if let imageName = document.imageName {
-                    cell.imageView?.image = UIImage(named: imageName)
-                } else {
-                    cell.imageView?.image = UIImage(systemName: "doc.text")
-                }
-                
-                return cell
+        cell.textLabel?.text = document.title
+        cell.detailTextLabel?.text = "Size: \(document.size.formattedSize())"
+        
+        let arrowIcon = UIImage(systemName: "chevron.right")
+        cell.accessoryView = UIImageView(image: arrowIcon)
+        
+        if let imageName = document.imageName {
+            cell.imageView?.image = UIImage(named: imageName)
+        } else {
+            cell.imageView?.image = UIImage(systemName: "doc.text")
+        }
+        
+        return cell
     }
-    
-    // Dans DocumentTableViewController
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let document = allDocuments[indexPath.section][indexPath.row]
-           instantiateQLPreviewController(withUrl: document.url)
-       }
+        let document = filteredDocuments[indexPath.section][indexPath.row]
+        instantiateQLPreviewController(withUrl: document.url)
+    }
     
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
@@ -207,24 +227,23 @@ class DocumentTableViewController: UITableViewController, QLPreviewControllerDat
         }
     }
 
-
-       // 2. Cette méthode permet de présenter le QLPreviewController
+    // Présenter le QLPreviewController
     func instantiateQLPreviewController(withUrl url: URL) {
-       let previewController = QLPreviewController()
-       previewController.dataSource = self  // Assigner le datasource à self
+        let previewController = QLPreviewController()
+        previewController.dataSource = self
         previewItem = url as QLPreviewItem
-       navigationController?.pushViewController(previewController, animated: true)
-   }
+        navigationController?.pushViewController(previewController, animated: true)
+    }
     
     func numberOfPreviewItems(in controller: QLPreviewController) -> Int {
-            return 1 // Nous ne présentons qu'un seul fichier à la fois
-        }
+        return 1 // Nous ne présentons qu'un seul fichier à la fois
+    }
 
-        // Cette méthode retourne l'élément à asfficher
-        func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
-            // Retourner l'item QuickLook, qui est simplement l'URL du fichier
-            return previewItem!
-        }
+    func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
+        // Retourner l'item QuickLook, qui est simplement l'URL du fichier
+        return previewItem!
+    }
+
 
     /*
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
