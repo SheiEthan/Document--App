@@ -8,6 +8,7 @@
 import UIKit
 import Foundation
 import QuickLook
+import UniformTypeIdentifiers
 
 func listFileInBundle() -> [DocumentFile] {
         
@@ -55,13 +56,107 @@ extension Int {
 }
 
 
-class DocumentTableViewController: UITableViewController, QLPreviewControllerDataSource {
+class DocumentTableViewController: UITableViewController, QLPreviewControllerDataSource, UIDocumentPickerDelegate {
     
     var previewItem: QLPreviewItem?
+    var allDocuments: [DocumentFile] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addDocument))
+        loadAllDocuments()
     }
+    
+    @objc func addDocument() {
+        // Lancer le UIDocumentPicker
+        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.item]) // Permet de sélectionner tous types de fichiers
+        documentPicker.delegate = self
+        documentPicker.allowsMultipleSelection = false // Pas de sélection multiple
+        present(documentPicker, animated: true, completion: nil)
+    }
+    
+    func copyFileToDocumentsDirectory(fromUrl url: URL) {
+           let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+           let destinationUrl = documentsDirectory.appendingPathComponent(url.lastPathComponent)
+           
+           do {
+               try FileManager.default.copyItem(at: url, to: destinationUrl)
+                       
+               let resourceValues = try? url.resourceValues(forKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
+                       
+                       
+                   if let resources = resourceValues,
+                      let name = resources.name, // Nom du fichier
+                      let contentType = resources.contentType {
+                       
+                       let documentFile = DocumentFile(
+                           title: name,
+                           size: Int(resources.fileSize ?? 0),
+                           imageName: nil,
+                           url: destinationUrl,
+                           type: contentType.description
+                       )
+                       allDocuments.append(documentFile)
+                   } else {
+                       print("Erreur: Les propriétés du fichier ne sont pas accessibles.")
+                   }
+           } catch {
+               print(error)
+           }
+       }
+    
+    func listFileInDocumentsDirectory() -> [DocumentFile] {
+        // Obtenir le chemin du répertoire Documents
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let fileManager = FileManager.default
+        var documentList = [DocumentFile]()
+
+        do {
+            // Obtenir tous les fichiers du répertoire
+            let fileUrls = try fileManager.contentsOfDirectory(at: documentsDirectory, includingPropertiesForKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
+            
+            for fileUrl in fileUrls {
+                // Récupérer les propriétés des fichiers
+                let resourceValues = try fileUrl.resourceValues(forKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
+                
+                documentList.append(DocumentFile(
+                    title: resourceValues.name ?? "Fichier inconnu",
+                    size: resourceValues.fileSize ?? 0,
+                    imageName: nil, // Pas d'image par défaut
+                    url: fileUrl,
+                    type: resourceValues.contentType?.description ?? "Type inconnu"
+                ))
+            }
+        } catch {
+            print("Erreur lors de la lecture des fichiers dans Documents : \(error.localizedDescription)")
+        }
+
+        return documentList
+    }
+    
+    func loadAllDocuments() {
+        // Charger les fichiers du bundle
+        let bundleDocuments = listFileInBundle()
+
+        // Charger les fichiers du répertoire Documents
+        let documentDirectoryFiles = listFileInDocumentsDirectory()
+
+        // Fusionner les fichiers dans la DataSource
+        allDocuments = bundleDocuments + documentDirectoryFiles
+
+        // Recharger la TableView
+        tableView.reloadData()
+    }
+    
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        guard let selectedFileUrl = urls.first else { return }
+        copyFileToDocumentsDirectory(fromUrl: selectedFileUrl)
+
+        // Mettre à jour la DataSource et recharger la TableView
+        loadAllDocuments()
+    }
+    
+    
     // MARK: - Table view data source
     
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -69,13 +164,13 @@ class DocumentTableViewController: UITableViewController, QLPreviewControllerDat
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return DocumentFile.documents.count
+        return allDocuments.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "DocumentCell", for: indexPath)
                 
-        let document = DocumentFile.documents[indexPath.row]
+        let document = allDocuments[indexPath.row]
                 
                 cell.textLabel?.text = document.title
                 
@@ -96,7 +191,7 @@ class DocumentTableViewController: UITableViewController, QLPreviewControllerDat
     // Dans DocumentTableViewController
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let document = DocumentFile.documents[indexPath.row]
+        let document = allDocuments[indexPath.row]
            instantiateQLPreviewController(withUrl: document.url)
        }
 
