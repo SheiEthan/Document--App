@@ -10,27 +10,6 @@ import Foundation
 import QuickLook
 import UniformTypeIdentifiers
 
-func listFileInBundle() -> [DocumentFile] {
-    let fm = FileManager.default
-    let path = Bundle.main.resourcePath!
-    let items = try! fm.contentsOfDirectory(atPath: path)
-    var documentListBundle = [DocumentFile]()
-    for item in items {
-        if !item.hasSuffix("DS_Store") && item.hasSuffix(".jpg") {
-            let currentUrl = URL(fileURLWithPath: path + "/" + item)
-            let resourcesValues = try! currentUrl.resourceValues(forKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
-               
-            documentListBundle.append(DocumentFile(
-                title: resourcesValues.name!,
-                size: resourcesValues.fileSize ?? 0,
-                imageName: item,
-                url: currentUrl,
-                type: resourcesValues.contentType!.description)
-            )
-        }
-    }
-    return documentListBundle
-}
 
 struct DocumentFile {
     var title: String
@@ -39,11 +18,51 @@ struct DocumentFile {
     var url: URL
     var type: String
     
-    // Liste statique de documents pour les tests
-    static let documents: [DocumentFile] = listFileInBundle()
+    static func listFileInBundle() -> [DocumentFile] {
+        let fm = FileManager.default
+        let path = Bundle.main.resourcePath!
+        let items = try! fm.contentsOfDirectory(atPath: path)
+        var documentListBundle = [DocumentFile]()
+        for item in items {
+            if !item.hasSuffix("DS_Store") && item.hasSuffix(".jpg") {
+                let currentUrl = URL(fileURLWithPath: path + "/" + item)
+                let resourcesValues = try! currentUrl.resourceValues(forKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
+                documentListBundle.append(DocumentFile(
+                    title: resourcesValues.name!,
+                    size: resourcesValues.fileSize ?? 0,
+                    imageName: item,
+                    url: currentUrl,
+                    type: resourcesValues.contentType!.description
+                ))
+            }
+        }
+        return documentListBundle
+    }
+
+    static func listFileInDocumentsDirectory() -> [DocumentFile] {
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let fileManager = FileManager.default
+        var documentList = [DocumentFile]()
+        do {
+            let fileUrls = try fileManager.contentsOfDirectory(at: documentsDirectory, includingPropertiesForKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
+            for fileUrl in fileUrls {
+                let resourceValues = try fileUrl.resourceValues(forKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
+                documentList.append(DocumentFile(
+                    title: resourceValues.name ?? "Fichier inconnu",
+                    size: resourceValues.fileSize ?? 0,
+                    imageName: nil,
+                    url: fileUrl,
+                    type: resourceValues.contentType?.description ?? "Type inconnu"
+                ))
+            }
+        } catch {
+            print("Erreur lors de la lecture des fichiers dans Documents: \(error.localizedDescription)")
+        }
+        return documentList
+    }
 }
 
-
+// Extension pour formater les tailles de fichiers en format lisible
 extension Int {
     func formattedSize() -> String {
         let formatter = ByteCountFormatter()
@@ -52,32 +71,41 @@ extension Int {
     }
 }
 
-
 class DocumentTableViewController: UITableViewController, UISearchBarDelegate, QLPreviewControllerDataSource, UIDocumentPickerDelegate {
-    
+
     var previewItem: QLPreviewItem?
     var allDocuments: [[DocumentFile]] = [[], []]
-    var filteredDocuments: [[DocumentFile]] = [[], []] // Contient les documents filtrés
-    var isSearchActive = false // Indicateur pour vérifier si la recherche est active
+    var filteredDocuments: [[DocumentFile]] = [[], []]
+    var isSearchActive = false
     var searchBar: UISearchBar!
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Ajouter la Search Bar
+        // Configuration de la barre de recherche
         searchBar = UISearchBar()
         searchBar.delegate = self
-        navigationItem.titleView = searchBar
+        searchBar.placeholder = "Rechercher par titre"
         
+        // Ajouter la Search Bar en tant que header de la tableView
+        self.tableView.tableHeaderView = searchBar
+        
+        // Modifier la taille du header pour donner de l'espace à la barre de recherche
+        let headerHeight: CGFloat = 44.0 // Hauteur de la Search Bar
+        var frame = searchBar.frame
+        frame.size.height = headerHeight
+        searchBar.frame = frame
+        self.tableView.tableHeaderView = searchBar
+        
+        // Bouton d'ajout de document
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addDocument))
         
         loadAllDocuments()
     }
-    
-    // Fonction pour filtrer les documents en fonction du texte recherché
+
     func filterDocuments(by searchText: String) {
         if searchText.isEmpty {
-            filteredDocuments = allDocuments // Réinitialise à tous les documents si la recherche est vide
+            filteredDocuments = allDocuments
         } else {
             filteredDocuments = allDocuments.map { section in
                 section.filter { document in
@@ -88,41 +116,39 @@ class DocumentTableViewController: UITableViewController, UISearchBarDelegate, Q
         tableView.reloadData()
     }
 
-    // Méthode du delegate de la SearchBar pour déclencher le filtrage
+    // Gestion de l'événement lorsque le texte de la barre de recherche change
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         filterDocuments(by: searchText)
     }
 
-    // Méthode pour quand la recherche est annulée
+    // Action de suppression de la recherche
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         searchBar.text = ""
         filterDocuments(by: "")
         searchBar.resignFirstResponder()
     }
-    
+
+    // Fonction pour charger les documents
     func loadAllDocuments() {
-        // Charger les fichiers du bundle
-        let bundleDocuments = listFileInBundle()
+        let bundleDocuments = DocumentFile.listFileInBundle()
+        let documentDirectoryFiles = DocumentFile.listFileInDocumentsDirectory()
         
-        // Charger les fichiers du répertoire Documents
-        let documentDirectoryFiles = listFileInDocumentsDirectory()
-        
-        // Remplir les sous-listes dans allDocuments : [Bundle, Importés]
+        // Stocke les fichiers dans les sections appropriées
         allDocuments[0] = bundleDocuments
         allDocuments[1] = documentDirectoryFiles
         
-        filteredDocuments = allDocuments // Initialiser les documents filtrés à la totalité
+        filteredDocuments = allDocuments // Initialisation des documents filtrés à la totalité
         tableView.reloadData()
     }
 
+    // Ajout d'un document via le document picker
     @objc func addDocument() {
-        // Lancer le UIDocumentPicker
-        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.item]) // Permet de sélectionner tous types de fichiers
+        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.item])
         documentPicker.delegate = self
-        documentPicker.allowsMultipleSelection = false // Pas de sélection multiple
+        documentPicker.allowsMultipleSelection = false
         present(documentPicker, animated: true, completion: nil)
     }
-    
+
     func copyFileToDocumentsDirectory(fromUrl url: URL) {
         let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let destinationUrl = documentsDirectory.appendingPathComponent(url.lastPathComponent)
@@ -133,7 +159,7 @@ class DocumentTableViewController: UITableViewController, UISearchBarDelegate, Q
             let resourceValues = try? url.resourceValues(forKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
             
             if let resources = resourceValues,
-               let name = resources.name, // Nom du fichier
+               let name = resources.name,
                let contentType = resources.contentType {
                 
                 let documentFile = DocumentFile(
@@ -151,37 +177,8 @@ class DocumentTableViewController: UITableViewController, UISearchBarDelegate, Q
             print(error)
         }
     }
-    
-    func listFileInDocumentsDirectory() -> [DocumentFile] {
-        // Obtenir le chemin du répertoire Documents
-        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let fileManager = FileManager.default
-        var documentList = [DocumentFile]()
 
-        do {
-            // Obtenir tous les fichiers du répertoire
-            let fileUrls = try fileManager.contentsOfDirectory(at: documentsDirectory, includingPropertiesForKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
-            
-            for fileUrl in fileUrls {
-                // Récupérer les propriétés des fichiers
-                let resourceValues = try fileUrl.resourceValues(forKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
-                
-                documentList.append(DocumentFile(
-                    title: resourceValues.name ?? "Fichier inconnu",
-                    size: resourceValues.fileSize ?? 0,
-                    imageName: nil, // Pas d'image par défaut
-                    url: fileUrl,
-                    type: resourceValues.contentType?.description ?? "Type inconnu"
-                ))
-            }
-        } catch {
-            print("Erreur lors de la lecture des fichiers dans Documents : \(error.localizedDescription)")
-        }
-
-        return documentList
-    }
-
-    // MARK: - Table view data source
+    // MARK: - Table View DataSource
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 2
@@ -215,19 +212,20 @@ class DocumentTableViewController: UITableViewController, UISearchBarDelegate, Q
         let document = filteredDocuments[indexPath.section][indexPath.row]
         instantiateQLPreviewController(withUrl: document.url)
     }
-    
+
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
         case 0:
-            return "Bundle"  // Titre de la section des fichiers du bundle
+            return "Bundle"
         case 1:
-            return "Importés"  // Titre de la section des fichiers importés
+            return "Importés"
         default:
             return nil
         }
     }
 
-    // Présenter le QLPreviewController
+    // MARK: - QuickLook
+
     func instantiateQLPreviewController(withUrl url: URL) {
         let previewController = QLPreviewController()
         previewController.dataSource = self
@@ -236,11 +234,10 @@ class DocumentTableViewController: UITableViewController, UISearchBarDelegate, Q
     }
     
     func numberOfPreviewItems(in controller: QLPreviewController) -> Int {
-        return 1 // Nous ne présentons qu'un seul fichier à la fois
+        return 1
     }
 
     func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
-        // Retourner l'item QuickLook, qui est simplement l'URL du fichier
         return previewItem!
     }
 
